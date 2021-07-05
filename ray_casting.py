@@ -57,7 +57,7 @@ class App():
         if the distance from the ray is smaller than previous one, make it the new collision point otherwise do nothing
         and at the end if there has been an intersection at all draw the line.
         '''        
-        for i in range(0,360,10):
+        for i in range(0,360,1):
             ray_out = Ray((self.ray_caster.x, self.ray_caster.y), 2, np.radians(i))
             pointDistance = 1000000
             saved_intersection = 0
