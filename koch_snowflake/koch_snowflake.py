@@ -2,6 +2,9 @@ import tkinter as tk
 import math
 import numpy as np
 
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 576
+
 class App():
     def __init__(self):
         self.root = tk.Tk()
@@ -9,10 +12,10 @@ class App():
         self.root.configure(bg='gray75', borderwidth=0)
         self.frame = tk.Frame(self.root, borderwidth=0, relief=tk.RAISED, bg='gray75')
         self.frame.pack_propagate(False)
-        self.root.geometry('1240x960+100+100')
+        self.root.geometry('{}x{}+100+100'.format(SCREEN_WIDTH, SCREEN_HEIGHT))
         
         self.frame.pack()
-        self.canvas = tk.Canvas(self.frame, height=960, width=960, borderwidth=0, bg='black', highlightbackground='gray75')
+        self.canvas = tk.Canvas(self.frame, height=SCREEN_HEIGHT, width=SCREEN_WIDTH, borderwidth=0, bg='black', highlightbackground='gray75')
         self.canvas.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
 
         self.listOPoints = []
@@ -22,29 +25,150 @@ class App():
             self.canvas.create_line(pair[0][0], pair[0][1], pair[1][0], pair[1][1],  fill=color)
             #self.canvas.create_text(pair[0][0], pair[0][1]+10, text='x:{}, y:{}'.format(pair[0][0], pair[0][1]), fill='orange')
 
-    def turtleRecursion(self, pointList, repetitions):
-        #get some rotation matrix action going.
+    def drawLine2(self, pointList, color):
+        for i in range(len(pointList)-1):
+            self.canvas.create_line(pointList[i][0], pointList[i][1], pointList[i+1][0], pointList[i+1][1],  fill=color)
+            #self.canvas.create_text(pair[0][0], pair[0][1]+10, text='x:{}, y:{}'.format(pair[0][0], pair[0][1]), fill='orange')
 
-        #get line
-        #advance by 1 unit
-        #rotate by -60 degrees
-        #advance one unit
-        #rotate by 120 deg
-        #advance 1 unit
-        #rotate by -60deg
-        #advance one unit
-        for line in pointList:
-            #1 unit = 1/3 of that line
+    #need to rotate a point around another point and return the new point?
+    def RotateAround(self, centre, point):        
+        print('rotate....')       
+
+        angle = np.deg2rad(60)
+
+        #rotate point around centre.
+        #move to origin
+        new_point = (point[0] - centre[0], point[1] - centre[1])
+        #rotate
+        new_roate = (math.cos(angle) * new_point[0], math.sin(angle) * new_point[1])
+        #move back
+        new_point = (new_roate[0] + centre[0], new_roate[1] + centre[1])
+
+        print('old_centre: {}\nold_point: {}'.format(centre, point))
+        print('new_point: {}'.format(new_point))
+        
+        return new_point
+
+    def Rotate_Line(self, line, angle):
+        #print('rotate', line)
+
+        angle = np.deg2rad(angle)
+
+        centre = line[0][0], line[0][1]
+        point = line[1][0], line[1][1]
+        
+        oldX = line[1][0] - centre[0]
+        oldY = line[1][1] - centre[1]
+
+        newX = (oldX * math.cos(angle)) - (oldY * math.sin(angle))
+        newY = (oldX * math.sin(angle)) + (oldY * math.cos(angle))
+
+        newX = newX + centre[0]
+        newY = newY + centre[1] 
+        new_point = (newX, newY)
+
+        return new_point
+
+    def turtleRecursion(self, line_list, repetitions):
+        #get some rotation matrix action going.
+        point_list = []
+
+        #also need to think through how to loop through these points recursivley and eventually return the whole list I want
+
+        new_line_list = []
+        #this should create a list of points from the lines passed in, including making new points.
+        for line in line_list:
             X1 = line[0][0]
             Y1 = line[0][1]
             X2 = line[1][0]
-            Y2 = line[1][1]
-
-            mag = self.getLineLen((X1, Y1), (X2, Y2))
-
-            print(mag)
+            Y2 = line[1][1]           
             
+            k = 1/3
+            newX1 = (X1+(k*(X2-X1)))
+            newY1 = (Y1+(k*(Y2-Y1)))
             
+            k=2/3
+            newX2 = (X1+(k*(X2-X1)))
+            newY2 = (Y1+(k*(Y2-Y1)))
+            
+            point_list.append(line[0])
+            point_list.append((newX1, newY1))
+            point_list.append((newX2, newY2))
+            point_list.append(line[1])
+
+            #making 4 lines out of those points
+            new_line_list.append([line[0], (newX1, newY1)])
+            new_line_list.append([(newX1, newY1), (newX2, newY2)])
+            
+            new_line_list[-1][1] = self.Rotate_Line(new_line_list[-1], 60)
+
+            something_newX = new_line_list[-1][0]
+            something_newY = new_line_list[-1][1]
+            
+            new_line_list.append([(something_newX, something_newY), (newX2, newY2)])
+            new_line_list.append([(newX2, newY2), (line[1])])
+
+            
+        color_list = ['blue',  'green', 'red', 'pink', 'orange', 'yellow']
+        for i in range(len(new_line_list)):
+            self.drawLine(new_line_list[i:i+1], color_list[i%6])
+            
+        #print('point list: {} length: {}'.format(point_list, len(point_list)))
+        print('line list: {} length: {}'.format(new_line_list, len(new_line_list)))
+
+
+        '''
+        #rotate lines now instead
+        #every 2nd and 3rd line to be rotated? 0 +1 +2 3 4 +5 +6 7 8 +9 +10 11 12
+        #start no, then it's a yes yes no no yes yes no no pattern
+        yes_no = 1
+        rotate_bool = False
+        
+        for x in range(len(new_line_list)):
+            if(rotate_bool):
+                #this changes the 2nd point in the line to be whatever is returned, which isn't accurate.               
+                new_line_list[x][1] = self.Rotate_Line(new_line_list[x], 120)
+                    
+            yes_no += 1
+        
+            if(yes_no == 2):
+                yes_no = 0
+                rotate_bool = not rotate_bool
+
+        self.canvas.delete('all')
+        for i in range(len(new_line_list)):
+            self.drawLine(new_line_list[i:i+1], color_list[(i%6)])
+
+        return new_line_list
+        '''
+    
+    '''            
+        i = 0
+        #rotate every 2nd point by 60 deg anti-clock       
+        for point in point_list:
+            print('[{}]points: {}'.format(i, point))
+            #need to turn the 2nd point around the first point.
+            if (i % 2):
+                point_list[i] = self.RotateAround(point_list[i-1], point)                
+            i += 1
+
+
+        
+        #turning it back into lines so I can draw them
+        line_list = []
+        for i in range(len(point_list)-1): 
+            line_list.append(point_list[i])
+            line_list.append(point_list[i+1])
+            i = i + 2
+    
+        
+        return point_list
+
+    '''
+
+        #a list should be thrown away if there's a new recursion call. should only keep the deepest list
+        #if repetitions - 1:
+            #turtleRecursion(new_list)
             
     def recursiveThing(self, pointList, repetitions):
         newSides = []        
@@ -264,17 +388,36 @@ def main():
     y1 = 280
     y2 = 280
 
-    pointList = [((200, 500), (500, 500)),((500, 500),(350, 235)),((350, 235),(200, 500))]
+    #list of points for the starting traingle
+    screen_centre = ((SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 2))
 
-    #print(pointList[0])    
-    #app.drawLine(pointList, 'white')
+    triangle_half_width = 75
+    triangle_half_height = 75
     
-    mylist = app.recursiveThing(pointList, 2)
+    point_list = []
 
-    #print(mylist)
-    app.drawLine(app.listOPoints, 'yellow')
+    #start from a point around the centre
+    start_point = (screen_centre[0] - triangle_half_width, screen_centre[1] + triangle_half_height)
+    end_point = (screen_centre[0] + triangle_half_width, screen_centre[1] + triangle_half_height)    
+    point_list.append([start_point, end_point])
 
-    app.turtleRecursion(pointList, 2)
+    start_point = end_point
+    end_point = (screen_centre[0], screen_centre[1] - triangle_half_height)
+    point_list.append([start_point, end_point])
+
+    start_point = end_point
+    end_point = (screen_centre[0] - triangle_half_width, screen_centre[1] + triangle_half_height)
+    point_list.append([start_point, end_point])    
+    
+    #print(pointList[0])    
+    #app.drawLine(point_list, 'white')        
+    #mylist = app.recursiveThing(point_list, 3)
+    #print(mylist)   
+
+    something_else = app.turtleRecursion(point_list, 1)
+    print('turtle stuff:\n', something_else)
+
+    #app.drawLine(something_else, 'yellow')
 
     app.root.mainloop()
 
