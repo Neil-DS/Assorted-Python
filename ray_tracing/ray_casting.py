@@ -3,6 +3,9 @@ import inspect
 import math
 import numpy as np
 
+HEIGHT = 540
+WIDTH = 960
+
 class App():
     def __init__(self):
         self.root = tk.Tk()
@@ -10,23 +13,23 @@ class App():
         self.root.configure(bg='gray75', borderwidth=0)
         self.frame = tk.Frame(self.root, borderwidth=0, relief=tk.RAISED, bg='gray75')
         self.frame.pack_propagate(False)
-        self.root.geometry('1240x960+100+100')
+        self.root.geometry('{}x{}+100+100'.format(WIDTH, HEIGHT))
         
         self.frame.pack()
-        self.canvas = tk.Canvas(self.frame, height=960, width=960, borderwidth=0, bg='grey', highlightbackground='gray75')
+        self.canvas = tk.Canvas(self.frame, height=HEIGHT, width=WIDTH, borderwidth=0, bg='grey', highlightbackground='gray75')
         self.canvas.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
 
         self.root.bind("<Escape>", self.escClose)
         self.canvas.bind("<Motion>", self.move)
 
         self.boundaryList = [
-            [(0, 3), (960, 3)],
-            [(0, 957), (960, 957)],
-            [(3, 3), (3, 960)],
-            [(960, 3), (960, 960)],
+            [(0, 3), (WIDTH-3, 3)],
+            [(0, HEIGHT-3), (WIDTH-3, HEIGHT-3)],
+            [(3, 3), (3, HEIGHT-3)],
+            [(WIDTH-3, 3), (WIDTH-3, HEIGHT-3)],
             [(300, 300), (400, 400)],
             [(900, 100), (100, 110)],
-            [(100, 600), (300, 270)],
+            [(100, 230), (300, 270)],
             [(200, 150), (132, 531)],
         ]
         
