@@ -9,5 +9,5 @@ quick map maker for a 2D game I'm working on:
 casts rays out in every direction in steps of 10deg and draws the lines on collision with a barrier using line line intersection:
 ![raycast](https://raw.githubusercontent.com/Neil-DS/Assorted-Python/main/ray_tracing/ray_capture.jpg)
 
-really awful implementation of koch-snowflake:
-![koch snowflake](https://raw.githubusercontent.com/Neil-DS/Assorted-Python/main/koch_snowflake/Awful_snowflake.JPG)
+Turtle implementation of the Koch Snowflake:
+![koch snowflake](https://raw.githubusercontent.com/Neil-DS/Assorted-Python/main/koch_snowflake/koch_screen.png)
